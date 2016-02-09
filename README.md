@@ -2,9 +2,10 @@
 A few random shell scripts for convenience
 
 #Instructions:
+```
 Copy all scripts to /usr/local/bin/
 Run scripts WITHOUT sudo, it will prompt for sudo password if needed, or run as root.
-
+```
 ###Usage: virsh-ip hostname
 List the ip address using the VM domain name that virsh uses
 
