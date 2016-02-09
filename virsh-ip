@@ -1,0 +1,56 @@
+#!/bin/bash
+# Author: Andrew Oatley-Willis
+# Description: shows RUNNING virtual machine's ip addresses using virsh
+# Usage: virsh-ip [hostname ...]
+# Instructions: place all the virsh-* scripts into /usr/local/bin/ on the c7host
+
+# Uncomment "if" below for sudo method
+if [ "$(sudo whoami)" != "root" ]; then
+  echo "Please run as root! or with sudo"
+  exit 1
+fi
+
+# Uncomment "if" below for root only
+#if [ "$(whoami)" != "root" ]; then
+#  echo "Please run as root!"
+#  exit 1
+#fi
+
+# No arguments specified
+if [ $# -lt 1 ]; then
+  echo "Description: shows RUNNING virtual machine's ip addresses using virsh"
+  echo "Usage: $0 [hostname] ..."
+  exit
+fi
+
+# Fill variable with positional parameters
+HOSTS="$*"
+
+# Default exit status
+ERROR=0
+
+# Loop through a list of hosts
+for HOST in ${HOSTS} ;do
+  # Skip host if it cannot be found with virsh and set exit status to a non-zero
+  if ! sudo virsh desc ${HOST} 2>&1 >/dev/null; then
+    ERROR=1
+    continue
+  fi
+  # Skip host if it is turned off
+  if sudo virsh list --inactive | grep "${HOST}" 2>&1 >/dev/null; then 
+    ERROR=1
+    continue
+  fi
+
+  # Get a list of Mac addresses from a hostname
+  MACS=$(sudo virsh dumpxml ${HOST}  | grep "mac address" | sed "s/.*address='\(.*\)'.*/\1/")
+  # Loop through all mac addresses found each host
+  for MAC in ${MACS} ;do
+    echo -n "${HOST}:"
+    # Get the ip addresses associated with a mac address
+    IPADDRESS=$(arp | grep "${MAC}" | sed 's/\([0-9.]*\) *\([a-z]*\) *\([a-z0-9:]*\) *\(.*\) *\([a-z0-9]*\)/\1/') 
+    echo "${IPADDRESS}"
+  done
+done
+# Exit with a exit status
+exit ${ERROR}

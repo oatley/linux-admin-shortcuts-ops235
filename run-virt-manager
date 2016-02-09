@@ -1,0 +1,4 @@
+#!/bin/bash
+# Used to authenticate with the X Server, when running virt-manager with "ssh -XC" X Forwarding
+USERNAME=$(whoami)
+sudo XAUTHORITY=/home/${USERNAME}/.Xauthority virt-manager
